@@ -17,7 +17,7 @@ services:
     env_file:
       - ./users/.env
     volumes:
-      - ./users/app:/usr/src/app
+      - ./users/app:/usr/src/users_service/app
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -41,7 +41,7 @@ services:
     env_file:
       - ./recipes/.env
     volumes:
-      - ./recipes/app:/usr/src/app
+      - ./recipes/app:/usr/src/recipes_service/app
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
