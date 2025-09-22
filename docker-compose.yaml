@@ -1,0 +1,62 @@
+services:
+  api_gateway:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./api_gateway/nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - users
+      - recipes
+
+  users:
+    build:
+      context: ./users
+      dockerfile: Dockerfile
+    container_name: users_service
+    env_file:
+      - ./users/.env
+    volumes:
+      - ./users/app:/usr/src/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - users_db
+
+  users_db:
+    image: postgres:17
+    container_name: users_db
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=users_db
+    volumes:
+      - users_db_data:/var/lib/postgresql/data
+  
+  recipes:
+    build:
+      context: ./recipes
+      dockerfile: Dockerfile
+    container_name: recipes_service
+    env_file:
+      - ./recipes/.env
+    volumes:
+      - ./recipes/app:/usr/src/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - recipes_db
+    
+  recipes_db:
+    image: postgres:17
+    container_name: recipes_db
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=recipes_db
+    volumes:
+      - recipes_db_data:/var/lib/postgresql/data
+
+volumes:
+  users_db_data:
+  recipes_db_data:
