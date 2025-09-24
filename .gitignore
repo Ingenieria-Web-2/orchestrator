@@ -1,7 +1,3 @@
-*
-!.gitignore
-!Makefile
-!README.md
-!docker-compose.yaml
-
-!.github/**/*
+api_gateway/
+recipes_service/
+users_service/
