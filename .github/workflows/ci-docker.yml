@@ -59,8 +59,8 @@ jobs:
 
       - name: Try to pull published images
         run: |
-          docker pull ghcr.io/Ingenieria-Web-2/users_service:latest || true
-          docker pull ghcr.io/Ingenieria-Web-2/recipes_service:latest || true
+          docker pull ghcr.io/ingenieria-web-2/users_service:latest || true
+          docker pull ghcr.io/ingenieria-web-2/recipes_service:latest || true
 
       - name: Build docker images with cache
         uses: docker/build-push-action@v5
@@ -68,9 +68,9 @@ jobs:
           context: .
           file: ./users_service/Dockerfile
           push: false
-          tags: ghcr.io/Ingenieria-Web-2/users_service:latest
-          cache-from: type=registry,ref=ghcr.io/Ingenieria-Web-2/users_service:latest
-          cache-to: type=registry,ref=ghcr.io/Ingenieria-Web-2/users_service:cache,mode=max
+          tags: ghcr.io/ingenieria-web-2/users_service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Build recipes_service image with cache
         uses: docker/build-push-action@v5
@@ -78,9 +78,9 @@ jobs:
           context: .
           file: ./recipes_service/Dockerfile
           push: false
-          tags: ghcr.io/Ingenieria-Web-2/recipes_service:latest
-          cache-from: type=registry,ref=ghcr.io/Ingenieria-Web-2/recipes_service:latest
-          cache-to: type=registry,ref=ghcr.io/Ingenieria-Web-2/recipes_service:cache,mode=max
+          tags: ghcr.io/ingenieria-web-2/recipes_service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       - name: Build docker-compose images (fallback)
         run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" build --parallel || true
 
