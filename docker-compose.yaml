@@ -10,6 +10,7 @@ services:
       - recipes_service
 
   users_service:
+    image: ghcr.io/Ingenieria-Web-2/users_service:latest
     build:
       context: ./users_service
       dockerfile: Dockerfile
@@ -34,6 +35,7 @@ services:
       - users_db_data:/var/lib/postgresql/data
   
   recipes_service:
+    image: ghcr.io/Ingenieria-Web-2/recipes_service:latest
     build:
       context: ./recipes_service
       dockerfile: Dockerfile
