@@ -105,20 +105,23 @@ jobs:
 
       - name: Run users_service tests
         run: |
-          mkdir -p reports
-          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm users_service python -m pytest --junitxml=reports/users-results.xml -q
+          # Ensure the reports directory exists inside the mounted app folder so pytest output
+          # written by the container is visible on the runner (the service mounts ./users_service/app).
+          mkdir -p users_service/app/reports
+          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm users_service python -m pytest --junitxml=users_service/app/reports/users-results.xml -q
 
       - name: Run recipes_service tests
         run: |
-          mkdir -p reports
-          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm recipes_service python -m pytest --junitxml=reports/recipes-results.xml -q
+          mkdir -p recipes_service/app/reports
+          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm recipes_service python -m pytest --junitxml=recipes_service/app/reports/recipes-results.xml -q
 
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: pytest-reports
-          path: reports/*.xml
+          # capture any reports generated under service folders
+          path: '**/reports/*.xml'
 
       - name: Collect container logs
         if: always()
