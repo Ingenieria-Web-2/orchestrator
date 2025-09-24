@@ -1,0 +1,79 @@
+name: CI — docker-compose tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  docker-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build docker-compose images
+        run: docker compose build --parallel
+
+      - name: Start DB services
+        run: docker compose up -d users_db recipes_db
+
+      - name: Wait for users_db to be ready
+        run: |
+          echo "Waiting for Postgres (users_db)..."
+          docker compose exec users_db bash -c 'until pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do sleep 1; done'
+        env:
+          POSTGRES_USER: user
+          POSTGRES_DB: users_db
+
+      - name: Wait for recipes_db to be ready
+        run: |
+          echo "Waiting for Postgres (recipes_db)..."
+          docker compose exec recipes_db bash -c 'until pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do sleep 1; done'
+        env:
+          POSTGRES_USER: user
+          POSTGRES_DB: recipes_db
+
+      - name: Run users_service tests
+        run: |
+          mkdir -p reports
+          docker compose run --rm users_service python -m pytest --junitxml=reports/users-results.xml -q
+
+      - name: Run recipes_service tests
+        run: |
+          mkdir -p reports
+          docker compose run --rm recipes_service python -m pytest --junitxml=reports/recipes-results.xml -q
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-reports
+          path: reports/*.xml
+
+      - name: Collect container logs
+        if: always()
+        run: |
+          mkdir -p logs
+          docker compose logs users_service > logs/users_service.log || true
+          docker compose logs recipes_service > logs/recipes_service.log || true
+        continue-on-error: true
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: service-logs
+          path: logs/**
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
