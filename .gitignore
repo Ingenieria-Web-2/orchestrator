@@ -3,5 +3,4 @@
 !docker-compose.yaml
 !README.md
 
-!.github/
 !.github/**/*
