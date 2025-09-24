@@ -30,6 +30,14 @@ jobs:
           path: recipes_service
           token: ${{ secrets.CI_PAT }}
 
+      - name: Login to Docker Hub (for binfmt image pulls)
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          # Add these secrets in your repo/org: DOCKERHUB_USERNAME and DOCKERHUB_TOKEN
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -57,8 +65,8 @@ jobs:
           file: ./users_service/Dockerfile
           push: false
           tags: ghcr.io/ingenieria-web-2/users_service:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=ghcr.io/ingenieria-web-2/users_service:latest
+          cache-to: type=registry,ref=ghcr.io/ingenieria-web-2/users_service:cache,mode=max
 
       - name: Build recipes_service image with cache
         uses: docker/build-push-action@v5
@@ -67,8 +75,8 @@ jobs:
           file: ./recipes_service/Dockerfile
           push: false
           tags: ghcr.io/ingenieria-web-2/recipes_service:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=ghcr.io/ingenieria-web-2/recipes_service:latest
+          cache-to: type=registry,ref=ghcr.io/ingenieria-web-2/recipes_service:cache,mode=max
       - name: Build docker-compose images (fallback)
         run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" build --parallel || true
 
