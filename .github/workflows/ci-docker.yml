@@ -30,20 +30,8 @@ jobs:
           path: recipes_service
           token: ${{ secrets.CI_PAT }}
 
-      - name: Docker diagnostics
-        run: |
-          echo "Checking docker availability on runner"
-          which docker || true
-          docker --version || true
-          echo "Attempting to run a simple docker hello-world (may fail in restricted runners)"
-          docker run --rm hello-world || true
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
-        # Make QEMU setup non-fatal: on some hosted runners or when Docker permissions are restricted
-        # this step can fail. We log the error and let the workflow continue; buildx may still work
-        # for native amd64 builds without QEMU emulation.
-        continue-on-error: true
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
