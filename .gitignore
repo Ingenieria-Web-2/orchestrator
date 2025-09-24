@@ -1,6 +1,7 @@
 *
 !.gitignore
-!docker-compose.yaml
+!Makefile
 !README.md
+!docker-compose.yaml
 
 !.github/**/*
