@@ -14,6 +14,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Checkout users_service repo
+        uses: actions/checkout@v4
+        with:
+          repository: Ingenieria-Web-2/users_service
+          path: users_service
+
+      - name: Checkout recipes_service repo
+        uses: actions/checkout@v4
+        with:
+          repository: Ingenieria-Web-2/recipes_service
+          path: recipes_service
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -21,15 +33,15 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Build docker-compose images
-        run: docker compose build --parallel
+        run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" build --parallel
 
       - name: Start DB services
-        run: docker compose up -d users_db recipes_db
+        run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" up -d users_db recipes_db
 
       - name: Wait for users_db to be ready
         run: |
           echo "Waiting for Postgres (users_db)..."
-          docker compose exec users_db bash -c 'until pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do sleep 1; done'
+          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" exec users_db bash -c 'until pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do sleep 1; done'
         env:
           POSTGRES_USER: user
           POSTGRES_DB: users_db
@@ -37,7 +49,7 @@ jobs:
       - name: Wait for recipes_db to be ready
         run: |
           echo "Waiting for Postgres (recipes_db)..."
-          docker compose exec recipes_db bash -c 'until pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do sleep 1; done'
+          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" exec recipes_db bash -c 'until pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do sleep 1; done'
         env:
           POSTGRES_USER: user
           POSTGRES_DB: recipes_db
@@ -45,12 +57,12 @@ jobs:
       - name: Run users_service tests
         run: |
           mkdir -p reports
-          docker compose run --rm users_service python -m pytest --junitxml=reports/users-results.xml -q
+          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm users_service python -m pytest --junitxml=reports/users-results.xml -q
 
       - name: Run recipes_service tests
         run: |
           mkdir -p reports
-          docker compose run --rm recipes_service python -m pytest --junitxml=reports/recipes-results.xml -q
+          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm recipes_service python -m pytest --junitxml=reports/recipes-results.xml -q
 
       - name: Upload test reports
         if: always()
@@ -63,8 +75,8 @@ jobs:
         if: always()
         run: |
           mkdir -p logs
-          docker compose logs users_service > logs/users_service.log || true
-          docker compose logs recipes_service > logs/recipes_service.log || true
+          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" logs users_service > logs/users_service.log || true
+          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" logs recipes_service > logs/recipes_service.log || true
         continue-on-error: true
 
       - name: Upload logs
@@ -76,4 +88,11 @@ jobs:
 
       - name: Tear down
         if: always()
-        run: docker compose down -v
+        run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" down -v
+
+      - name: Debug workspace layout
+        if: always()
+        run: |
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+          pwd
+          ls -la "$GITHUB_WORKSPACE" || true
