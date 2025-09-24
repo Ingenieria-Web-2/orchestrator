@@ -13,18 +13,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.CI_PAT }}
 
       - name: Checkout users_service repo
         uses: actions/checkout@v4
         with:
           repository: Ingenieria-Web-2/users_service
           path: users_service
+          token: ${{ secrets.CI_PAT }}
 
       - name: Checkout recipes_service repo
         uses: actions/checkout@v4
         with:
           repository: Ingenieria-Web-2/recipes_service
           path: recipes_service
+          token: ${{ secrets.CI_PAT }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -37,7 +41,9 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          # This workflow expects a PAT stored in repo/org secrets named `CI_PAT`.
+          # Create a fine-grained PAT with Packages: Read & write and Repository: Read
+          password: ${{ secrets.CI_PAT }}
 
       - name: Try to pull published images
         run: |
