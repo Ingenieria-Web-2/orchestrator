@@ -6,59 +6,59 @@ services:
     volumes:
       - ./api_gateway/nginx/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
-      - users_service
-      - recipes_service
+      - user_service
+      - recipe_service
 
-  users_service:
-    image: ghcr.io/ingenieria-web-2/users_service:latest
+  user_service:
+    image: ghcr.io/ingenieria-web-2/user_service:latest
     build:
-      context: ./users_service
+      context: ./user_service
       dockerfile: Dockerfile
-    container_name: users_service
+    container_name: user_service
     env_file:
-      - ./users_service/.env
+      - ./user_service/.env
     volumes:
-      - ./users_service/app:/usr/src/users_service/app
+      - ./user_service/app:/usr/src/user_service/app
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
-      - users_db
+      - user_db
 
-  users_db:
+  user_db:
     image: postgres:17
-    container_name: users_db
+    container_name: user_db
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=users_db
+      - POSTGRES_DB=user_db
     volumes:
-      - users_db_data:/var/lib/postgresql/data
+      - user_db_data:/var/lib/postgresql/data
   
-  recipes_service:
-    image: ghcr.io/ingenieria-web-2/recipes_service:latest
+  recipe_service:
+    image: ghcr.io/ingenieria-web-2/recipe_service:latest
     build:
-      context: ./recipes_service
+      context: ./recipe_service
       dockerfile: Dockerfile
-    container_name: recipes_service
+    container_name: recipe_service
     env_file:
-      - ./recipes_service/.env
+      - ./recipe_service/.env
     volumes:
-      - ./recipes_service/app:/usr/src/recipes_service/app
+      - ./recipe_service/app:/usr/src/recipe_service/app
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
-      - recipes_db
+      - recipe_db
     
-  recipes_db:
+  recipe_db:
     image: postgres:17
-    container_name: recipes_db
+    container_name: recipe_db
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=recipes_db
+      - POSTGRES_DB=recipe_db
     volumes:
-      - recipes_db_data:/var/lib/postgresql/data
+      - recipe_db_data:/var/lib/postgresql/data
 
 volumes:
-  users_db_data:
-  recipes_db_data:
+  user_db_data:
+  recipe_db_data:

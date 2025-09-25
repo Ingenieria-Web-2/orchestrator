@@ -16,18 +16,18 @@ jobs:
         with:
           token: ${{ secrets.CI_PAT }}
 
-      - name: Checkout users_service repo
+      - name: Checkout user_service repo
         uses: actions/checkout@v4
         with:
-          repository: Ingenieria-Web-2/users_service
-          path: users_service
+          repository: Ingenieria-Web-2/user_service
+          path: user_service
           token: ${{ secrets.CI_PAT }}
 
-      - name: Checkout recipes_service repo
+      - name: Checkout recipe_service repo
         uses: actions/checkout@v4
         with:
-          repository: Ingenieria-Web-2/recipes_service
-          path: recipes_service
+          repository: Ingenieria-Web-2/recipe_service
+          path: recipe_service
           token: ${{ secrets.CI_PAT }}
 
       - name: Login to Docker Hub (for binfmt image pulls)
@@ -55,61 +55,61 @@ jobs:
 
       - name: Try to pull published images
         run: |
-          docker pull ghcr.io/ingenieria-web-2/users_service:latest || true
-          docker pull ghcr.io/ingenieria-web-2/recipes_service:latest || true
+          docker pull ghcr.io/ingenieria-web-2/user_service:latest || true
+          docker pull ghcr.io/ingenieria-web-2/recipe_service:latest || true
 
       - name: Build docker images with cache
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./users_service/Dockerfile
+          file: ./user_service/Dockerfile
           push: false
-          tags: ghcr.io/ingenieria-web-2/users_service:latest
-          cache-from: type=registry,ref=ghcr.io/ingenieria-web-2/users_service:latest
-          cache-to: type=registry,ref=ghcr.io/ingenieria-web-2/users_service:cache,mode=max
+          tags: ghcr.io/ingenieria-web-2/user_service:latest
+          cache-from: type=registry,ref=ghcr.io/ingenieria-web-2/user_service:latest
+          cache-to: type=registry,ref=ghcr.io/ingenieria-web-2/user_service:cache,mode=max
 
-      - name: Build recipes_service image with cache
+      - name: Build recipe_service image with cache
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./recipes_service/Dockerfile
+          file: ./recipe_service/Dockerfile
           push: false
-          tags: ghcr.io/ingenieria-web-2/recipes_service:latest
-          cache-from: type=registry,ref=ghcr.io/ingenieria-web-2/recipes_service:latest
-          cache-to: type=registry,ref=ghcr.io/ingenieria-web-2/recipes_service:cache,mode=max
+          tags: ghcr.io/ingenieria-web-2/recipe_service:latest
+          cache-from: type=registry,ref=ghcr.io/ingenieria-web-2/recipe_service:latest
+          cache-to: type=registry,ref=ghcr.io/ingenieria-web-2/recipe_service:cache,mode=max
       - name: Build docker-compose images (fallback)
         run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" build --parallel || true
 
       - name: Start DB services
-        run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" up -d users_db recipes_db
+        run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" up -d user_db recipe_db
 
-      - name: Wait for users_db to be ready
+      - name: Wait for user_db to be ready
         run: |
-          echo "Waiting for Postgres (users_db)..."
-          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" exec users_db bash -c 'until pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do sleep 1; done'
+          echo "Waiting for Postgres (user_db)..."
+          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" exec user_db bash -c 'until pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do sleep 1; done'
         env:
           POSTGRES_USER: user
-          POSTGRES_DB: users_db
+          POSTGRES_DB: user_db
 
-      - name: Wait for recipes_db to be ready
+      - name: Wait for recipe_db to be ready
         run: |
-          echo "Waiting for Postgres (recipes_db)..."
-          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" exec recipes_db bash -c 'until pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do sleep 1; done'
+          echo "Waiting for Postgres (recipe_db)..."
+          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" exec recipe_db bash -c 'until pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do sleep 1; done'
         env:
           POSTGRES_USER: user
-          POSTGRES_DB: recipes_db
+          POSTGRES_DB: recipe_db
 
-      - name: Run users_service tests
+      - name: Run user_service tests
         run: |
           # Ensure the reports directory exists inside the mounted app folder so pytest output
-          # written by the container is visible on the runner (the service mounts ./users_service/app).
-          mkdir -p users_service/app/reports
-          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm users_service python -m pytest --junitxml=users_service/app/reports/users-results.xml -q
+          # written by the container is visible on the runner (the service mounts ./user_service/app).
+          mkdir -p user_service/app/reports
+          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm user_service python -m pytest --junitxml=user_service/app/reports/users-results.xml -q
 
-      - name: Run recipes_service tests
+      - name: Run recipe_service tests
         run: |
-          mkdir -p recipes_service/app/reports
-          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm recipes_service python -m pytest --junitxml=recipes_service/app/reports/recipes-results.xml -q
+          mkdir -p recipe_service/app/reports
+          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm recipe_service python -m pytest --junitxml=recipe_service/app/reports/recipes-results.xml -q
 
       - name: Upload test reports
         if: always()
@@ -123,8 +123,8 @@ jobs:
         if: always()
         run: |
           mkdir -p logs
-          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" logs users_service > logs/users_service.log || true
-          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" logs recipes_service > logs/recipes_service.log || true
+          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" logs user_service > logs/user_service.log || true
+          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" logs recipe_service > logs/recipe_service.log || true
         continue-on-error: true
 
       - name: Upload logs

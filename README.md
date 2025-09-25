@@ -11,7 +11,7 @@ This repository contains a docker-compose orchestrator and multiple microservice
 
 - `docker-compose.yaml` - top-level compose file that wires the API gateway, services, and databases.
 - `api_gateway/` - nginx config used to route and validate requests.
-- `users_service/`, `recipes_service/` - individual microservices (each with its own `app/`, `requirements.txt`, and Dockerfile).
+- `user_service/`, `recipe_service/` - individual microservices (each with its own `app/`, `requirements.txt`, and Dockerfile).
 - `Makefile` - convenience tasks to build images, start the stack, and run tests inside containers.
 - `.github/workflows/ci-docker.yml` - containerized CI workflow that builds images and runs tests inside the containers.
 - `tools/nginx_auth_check.sh` - helper script with curl examples for the gateway auth flow.
@@ -48,8 +48,8 @@ You can run tests in a local virtual environment. See individual service `requir
 ```
 python -m venv .venv
 source .venv/bin/activate
-pip install -r users_service/requirements.txt
-pip install -r recipes_service/requirements.txt
+pip install -r user_service/requirements.txt
+pip install -r recipe_service/requirements.txt
 pytest -q
 ```
 
@@ -83,7 +83,7 @@ Tradeoffs: containerized CI is slower than native pytest in CI but gives higher 
 2. Run the tests in the same container the CI uses:
 
 ```
-docker compose run --rm users_service python -m pytest -q
+docker compose run --rm user_service python -m pytest -q
 ```
 
 3. Upload logs or artifacts from the failing service to inspect further.
@@ -97,7 +97,7 @@ This repository includes service-specific licenses in each subfolder. See each f
 The included `Makefile` exposes a few convenience commands to help during development:
 
 - `make build` - builds all service images in parallel using `docker compose build --parallel`.
-- `make up` - starts the database services (`users_db`, `recipes_db`) in the background.
+- `make up` - starts the database services (`user_db`, `recipe_db`) in the background.
 - `make down` - stops and removes the compose stack.
 - `make test-docker` - runs both service test suites inside their respective containers and stores reports under `reports/`.
 - `make test-users` / `make test-recipes` - run tests for a single service in its container.
