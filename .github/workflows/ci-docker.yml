@@ -119,8 +119,8 @@ jobs:
         if: always()
         run: |
           mkdir -p logs
-          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" logs user_service > user_service/logs/user_service.log || true
-          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" logs recipe_service > recipe_service/logs/recipe_service.log || true
+          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" logs user_service > logs/user_service.log || true
+          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" logs recipe_service > logs/recipe_service.log || true
         continue-on-error: true
 
       - name: Upload logs
@@ -128,9 +128,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: service-logs
-          paths: |
-            user_service/logs/*
-            recipe_service/logs/*
+          path: logs/*
 
       - name: Tear down
         if: always()
