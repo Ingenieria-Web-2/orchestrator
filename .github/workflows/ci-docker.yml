@@ -93,10 +93,10 @@ jobs:
           mkdir -p recipe_service/reports
 
       - name: Run user_service tests
-        run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm -v "$GITHUB_WORKSPACE/user_service/reports:/usr/src/user_service/reports" user_service python -m pytest --junitxml=reports/users-results.xml -v
+        run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm -v "$GITHUB_WORKSPACE/user_service/reports:/usr/src/user_service/reports" user_service python -m pytest --junitxml=user_service/reports/user_service_results.xml -v
 
       - name: Run recipe_service tests
-        run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm -v "$GITHUB_WORKSPACE/recipe_service/reports:/usr/src/recipe_service/reports" recipe_service python -m pytest --junitxml=reports/recipes-results.xml -v
+        run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm -v "$GITHUB_WORKSPACE/recipe_service/reports:/usr/src/recipe_service/reports" recipe_service python -m pytest --junitxml=recipe_service/reports/recipe_service_results.xml -v
 
       - name: Upload test reports
         if: always()
@@ -104,23 +104,23 @@ jobs:
         with:
           name: pytest-reports
           path: |
-            reports/user_service/*.xml
-            reports/recipe_service/*.xml
+            user_service/reports/*
+            recipe_service/reports/*
 
       - name: Test Summary Report
         uses: test-summary/action@v2
         if: always()
         with:
           paths: |
-            reports/user_service/*.xml
-            reports/recipe_service/*.xml
+            user_service/reports/*
+            recipe_service/reports/*
 
       - name: Collect container logs
         if: always()
         run: |
           mkdir -p logs
-          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" logs user_service > logs/user_service.log || true
-          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" logs recipe_service > logs/recipe_service.log || true
+          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" logs user_service > user_service/logs/user_service.log || true
+          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" logs recipe_service > recipe_service/logs/recipe_service.log || true
         continue-on-error: true
 
       - name: Upload logs
@@ -128,7 +128,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: service-logs
-          path: logs/**
+          paths: |
+            user_service/logs/*
+            recipe_service/logs/*
 
       - name: Tear down
         if: always()
