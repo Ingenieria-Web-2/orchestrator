@@ -48,8 +48,6 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          # This workflow expects a PAT stored in repo/org secrets named `GITHUB_TOKEN`.
-          # Create a fine-grained PAT with Packages: Read & write and Repository: Read
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Try to pull published images
@@ -57,10 +55,10 @@ jobs:
           docker pull ghcr.io/ingenieria-web-2/user_service:latest || true
           docker pull ghcr.io/ingenieria-web-2/recipe_service:latest || true
 
-      - name: Build docker images with cache
+      - name: Build user_service images with cache
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./user_service
           file: ./user_service/Dockerfile
           push: false
           tags: ghcr.io/ingenieria-web-2/user_service:latest
@@ -70,12 +68,13 @@ jobs:
       - name: Build recipe_service image with cache
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./recipe_service
           file: ./recipe_service/Dockerfile
           push: false
           tags: ghcr.io/ingenieria-web-2/recipe_service:latest
           cache-from: type=registry,ref=ghcr.io/ingenieria-web-2/recipe_service:latest
           cache-to: type=registry,ref=ghcr.io/ingenieria-web-2/recipe_service:cache,mode=max
+
       - name: Build docker-compose images (fallback)
         run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" build --parallel || true
 
