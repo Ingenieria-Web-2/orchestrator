@@ -104,16 +104,16 @@ jobs:
         with:
           name: pytest-reports
           path: |
-            user_service/reports/*.xml
-            recipe_service/reports/*.xml
+            reports/user_service/*.xml
+            reports/recipe_service/*.xml
 
       - name: Test Summary Report  
         uses: test-summary/action@v2
         if: always()
         with:
           paths: |
-            user_service/reports/*.xml
-            recipe_service/reports/*.xml
+            reports/user_service/*.xml
+            reports/recipe_service/*.xml
 
       - name: Collect container logs
         if: always()
