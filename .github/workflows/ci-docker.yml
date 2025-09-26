@@ -48,7 +48,7 @@ jobs:
           docker pull ghcr.io/ingenieria-web-2/user_service:latest || true
           docker pull ghcr.io/ingenieria-web-2/recipe_service:latest || true
 
-      - name: Build user_service images with cache
+      - name: Build user_service images and push
         uses: docker/build-push-action@v5
         with:
           context: ./user_service
@@ -58,7 +58,7 @@ jobs:
           cache-from: type=registry,ref=ghcr.io/ingenieria-web-2/user_service:latest
           cache-to: type=registry,ref=ghcr.io/ingenieria-web-2/user_service:cache,mode=max
 
-      - name: Build recipe_service image with cache
+      - name: Build recipe_service image and push
         uses: docker/build-push-action@v5
         with:
           context: ./recipe_service
@@ -107,7 +107,7 @@ jobs:
             reports/user_service/*.xml
             reports/recipe_service/*.xml
 
-      - name: Test Summary Report  
+      - name: Test Summary Report
         uses: test-summary/action@v2
         if: always()
         with:
