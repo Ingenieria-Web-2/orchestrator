@@ -93,10 +93,10 @@ jobs:
           mkdir -p recipe_service/reports
 
       - name: Run user_service tests
-        run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm -v "$GITHUB_WORKSPACE/user_service/reports:/usr/src/user_service/reports" user_service python -m pytest --junitxml=user_service/reports/user_service_results.xml -v
+        run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm -v "$GITHUB_WORKSPACE/user_service/reports:/usr/src/user_service/reports" user_service python -m pytest --junitxml=users-results.xml -v
 
       - name: Run recipe_service tests
-        run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm -v "$GITHUB_WORKSPACE/recipe_service/reports:/usr/src/recipe_service/reports" recipe_service python -m pytest --junitxml=recipe_service/reports/recipe_service_results.xml -v
+        run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm -v "$GITHUB_WORKSPACE/recipe_service/reports:/usr/src/recipe_service/reports" recipe_service python -m pytest --junitxml=recipes-results.xml -v
 
       - name: Upload test reports
         if: always()
@@ -104,16 +104,16 @@ jobs:
         with:
           name: pytest-reports
           path: |
-            user_service/reports/*
-            recipe_service/reports/*
+            user_service/reports/*.xml
+            recipe_service/reports/*.xml
 
       - name: Test Summary Report
         uses: test-summary/action@v2
         if: always()
         with:
           paths: |
-            user_service/reports/*
-            recipe_service/reports/*
+            user_service/reports/*.xml
+            recipe_service/reports/*.xml
 
       - name: Collect container logs
         if: always()
