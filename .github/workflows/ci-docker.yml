@@ -48,7 +48,7 @@ jobs:
           docker pull ghcr.io/ingenieria-web-2/user_service:latest || true
           docker pull ghcr.io/ingenieria-web-2/recipe_service:latest || true
 
-      - name: Build user_service images and push
+      - name: Build user_service image and push
         uses: docker/build-push-action@v5
         with:
           context: ./user_service
