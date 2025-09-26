@@ -30,13 +30,6 @@ jobs:
           path: recipe_service
           token: ${{ secrets.CI_PAT }}
 
-      - name: Login to Docker Hub (for binfmt image pulls)
-        uses: docker/login-action@v2
-        with:
-          registry: docker.io
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -75,9 +68,6 @@ jobs:
           cache-from: type=registry,ref=ghcr.io/ingenieria-web-2/recipe_service:latest
           cache-to: type=registry,ref=ghcr.io/ingenieria-web-2/recipe_service:cache,mode=max
 
-      - name: Build docker-compose images (fallback)
-        run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" build --parallel || true
-
       - name: Start DB services
         run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" up -d user_db recipe_db
 
@@ -97,25 +87,33 @@ jobs:
           POSTGRES_USER: user
           POSTGRES_DB: recipe_db
 
-      - name: Run user_service tests
+      - name: Create test report directories
         run: |
-          # Ensure the reports directory exists inside the mounted app folder so pytest output
-          # written by the container is visible on the runner (the service mounts ./user_service/app).
-          mkdir -p user_service/app/reports
-          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm user_service python -m pytest --junitxml=user_service/app/reports/users-results.xml -q
+          mkdir -p user_service/reports
+          mkdir -p recipe_service/reports
+
+      - name: Run user_service tests
+        run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm -v "$GITHUB_WORKSPACE/user_service/reports:/usr/src/user_service/reports" user_service python -m pytest --junitxml=reports/users-results.xml -v
 
       - name: Run recipe_service tests
-        run: |
-          mkdir -p recipe_service/app/reports
-          docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm recipe_service python -m pytest --junitxml=recipe_service/app/reports/recipes-results.xml -q
+        run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" run --rm -v "$GITHUB_WORKSPACE/recipe_service/reports:/usr/src/recipe_service/reports" recipe_service python -m pytest --junitxml=reports/recipes-results.xml -v
 
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: pytest-reports
-          # capture any reports generated under service folders
-          path: '**/reports/*.xml'
+          path: |
+            user_service/reports/*.xml
+            recipe_service/reports/*.xml
+
+      - name: Test Summary Report  
+        uses: test-summary/action@v2
+        if: always()
+        with:
+          paths: |
+            user_service/reports/*.xml
+            recipe_service/reports/*.xml
 
       - name: Collect container logs
         if: always()
@@ -137,7 +135,7 @@ jobs:
         run: docker compose -f "$GITHUB_WORKSPACE/docker-compose.yaml" down -v
 
       - name: Debug workspace layout
-        if: always()
+        if: failure()
         run: |
           echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
           pwd
