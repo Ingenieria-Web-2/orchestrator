@@ -34,7 +34,6 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: docker.io
-          # Add these secrets in your repo/org: DOCKERHUB_USERNAME and DOCKERHUB_TOKEN
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
