@@ -32,7 +32,3 @@ Stop and remove the stack:
 ```
 make down
 ```
-
-## License
-
-MIT License.
