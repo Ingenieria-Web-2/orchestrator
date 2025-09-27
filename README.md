@@ -21,14 +21,8 @@ Requirements:
 - Docker & Docker Compose
 - GNU Make (optional, `make` targets use docker-compose)
 
-Run tests inside the containers (recommended — mirrors CI):
+Run tests inside the containers (recommended):
 
 ```
 make test-docker
-```
-
-Stop and remove the stack:
-
-```
-make down
 ```

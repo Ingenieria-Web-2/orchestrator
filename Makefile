@@ -4,26 +4,9 @@ SHELL := /usr/bin/env bash
 
 help:
 	@echo "Makefile targets:"
-	@echo "  make build          Build all service images (docker compose build)"
-	@echo "  make down           Stop and remove compose stack (volumes)")
-	@echo "  make ps             Show compose ps"
-	@echo "  make logs           Tail logs for services"
 	@echo "  make test-docker    Run pytest inside service containers (containerized tests)"
 	@echo "  make test-users     Run user_service tests in container"
 	@echo "  make test-recipes   Run recipe_service tests in container"
-	@echo "  make clean          Remove local test DBs and temporary artifacts"
-
-build:
-	docker compose build --parallel
-
-down:
-	docker compose down -v
-
-ps:
-	docker compose ps
-
-logs:
-	docker compose logs --tail=200 -f
 
 test-docker:
 	@echo "Running tests inside containers..."
@@ -38,8 +21,3 @@ test-users:
 test-recipes:
 	@mkdir -p recipe_service/reports
 	docker compose run --rm -v "$(PWD)/recipe_service/reports:/usr/src/recipe_service/reports" recipe_service python -m pytest --junitxml=reports/recipes-results.xml -v
-
-clean:
-	@echo "Cleaning test artifacts..."
-	rm -f user_service/app/test_db.sqlite || true
-	rm -f recipe_service/app/test_db.sqlite || true
